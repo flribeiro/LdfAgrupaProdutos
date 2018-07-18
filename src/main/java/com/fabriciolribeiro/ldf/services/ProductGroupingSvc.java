@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -110,7 +111,8 @@ public class ProductGroupingSvc {
 	 */
 	private Result groupProductsByEan(List<Product> products) {
 		LOG.info("Agrupando produtos por EAN.");
-		Map<String, List<Product>> groupingByEanMap = entry.getValue().stream().collect(Collectors.groupingBy(Product::getEan));
+		
+		Map<String, List<Product>> groupingByEanMap = products.stream().collect(Collectors.groupingBy(Product::getEan));
 		
 		Grouping groupingByEan = new Grouping();
 		Result result = new Result();
@@ -118,7 +120,7 @@ public class ProductGroupingSvc {
 		// Eliminar únicos
 		for (Map.Entry<String, List<Product>> entry: groupingByEanMap.entrySet()) {
 			if (entry.getValue().size() == 1) {
-				groupingByEanMap.remove(entry);
+				groupingByEanMap.remove(entry.getKey());
 			} else {
 				groupingByEan.setDescription(entry.getKey());
 				groupingByEan.setProdutos(entry.getValue());
@@ -136,9 +138,18 @@ public class ProductGroupingSvc {
 	 *  @param listProducts
 	 *  @return Map<String, List<Produto>>
 	 */
-	private Map<String, List<Product>> groupProductsByTitle(List<Product> products) {
+	private Result groupProductsByTitle(List<Product> products) {
 		LOG.info("Agrupando produtos por título.");
-		return products.stream().collect(Collectors.groupingBy(Product::getTitle));
+		
+		Result result = new Result();
+		
+		for (int i = 0; i < products.size(); i++) {
+			String[] p0Title = products.get(i).getTitle().split(" ");
+			String[] p1Title = products.get(i++).getTitle().split(" ");
+			// Compara as duas
+		}
+		
+		return result;
 	}
 	
 	/**
@@ -147,9 +158,25 @@ public class ProductGroupingSvc {
 	 *  @param listProducts
 	 *  @return Map<String, List<Produto>>
 	 */
-	private Map<String, List<Product>> groupProductsByBrand(List<Product> products) {
+	private Result groupProductsByBrand(List<Product> products) {
 		LOG.info("Agrupando produtos por marca.");
-		return products.stream().collect(Collectors.groupingBy(Product::getBrand));
+		Map<String, List<Product>> groupingByBrandMap = products.stream().collect(Collectors.groupingBy(Product::getBrand));
+		
+		Grouping groupingByBrand = new Grouping();
+		Result result = new Result();
+		
+		// Eliminar únicos
+		for (Map.Entry<String, List<Product>> entry: groupingByBrandMap.entrySet()) {
+			if (entry.getValue().size() == 1) {
+				groupingByBrandMap.remove(entry.getKey());
+			} else {
+				groupingByBrand.setDescription(entry.getKey());
+				groupingByBrand.setProdutos(entry.getValue());
+				result.addGrouping(groupingByBrand);
+			}
+		}
+		
+		return result;
 	}
 	
 	/**

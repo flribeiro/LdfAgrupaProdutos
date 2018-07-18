@@ -1,7 +1,6 @@
 package com.fabriciolribeiro.ldf.controllers;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fabriciolribeiro.ldf.entities.Product;
+import com.fabriciolribeiro.ldf.entities.Result;
 import com.fabriciolribeiro.ldf.services.ProductGroupingSvc;
 
 @RestController
@@ -38,7 +38,7 @@ public class LdfController {
 	 * @return ResponseEntity<Response<ListaProdutos>>
 	 */	
 	@PostMapping
-	public Map<String, List<Product>> groupProducts(@RequestBody List<Product> produtos,
+	public Result groupProducts(@RequestBody List<Product> produtos,
 									  @PathVariable Optional<String> filter, 
 									  @PathVariable Optional<String> order_by) {
 		
@@ -60,7 +60,7 @@ public class LdfController {
 			orderD = order_by.toString();
 		}
 		
-		Map<String, List<Product>> mapProdutosProcessados = service.masterGrouping(listaProdutos, filterD, orderD);
+		Result mapProdutosProcessados = service.masterGrouping(listaProdutos, filterD, orderD);
 		
 
 		return mapProdutosProcessados;
