@@ -2,7 +2,7 @@ package com.fabriciolribeiro.ldf.entities;
 
 import java.math.BigDecimal;
 
-public class Produto {
+public class Product {
 	private String id;
 	private String ean;
 	private String title;
@@ -10,7 +10,7 @@ public class Produto {
 	private BigDecimal price;
 	private int stock;
 	
-	public Produto() {
+	public Product() {
 		
 	}
 

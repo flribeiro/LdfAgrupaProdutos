@@ -7,19 +7,19 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import com.fabriciolribeiro.ldf.entities.Produto;
+import com.fabriciolribeiro.ldf.entities.Product;
 
 @SpringBootApplication
 public class LuizalabsDesafioFabricioApplication {
 	
-	private List<Produto> produtos;
+	private List<Product> produtos;
 
 	public static void main(String[] args) {
 		SpringApplication.run(LuizalabsDesafioFabricioApplication.class, args);
 	}
 	
 	@Bean("produtos")
-	public List<Produto> getProdutos() {
+	public List<Product> getProdutos() {
 		produtos = new ArrayList<>();
 		return produtos;
 	}

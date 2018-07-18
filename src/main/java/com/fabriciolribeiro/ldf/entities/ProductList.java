@@ -3,17 +3,17 @@ package com.fabriciolribeiro.ldf.entities;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListaProdutos {
-	private ArrayList<Produto> listaProdutos;
+public class ProductList {
+	private ArrayList<Product> listaProdutos;
 	
-	public ListaProdutos() {
+	public ProductList() {
 	}
 	
-	public ListaProdutos(List<Produto> produtos) {
-		this.listaProdutos = new ArrayList<Produto>(produtos);
+	public ProductList(List<Product> produtos) {
+		this.listaProdutos = new ArrayList<Product>(produtos);
 	}
 	
-	public void addProduto(Produto produto) {
+	public void addProduto(Product produto) {
 		listaProdutos.add(produto);
 	}
 	

@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fabriciolribeiro.ldf.entities.Produto;
-import com.fabriciolribeiro.ldf.services.ListaProdutosSvc;
+import com.fabriciolribeiro.ldf.entities.Product;
+import com.fabriciolribeiro.ldf.services.ProductGroupingSvc;
 
 @RestController
 @RequestMapping(value="/agrupamento")
@@ -23,11 +23,11 @@ public class LdfController {
 	private static final Logger LOG = LoggerFactory.getLogger(LdfController.class);
 	
 	@Autowired
-	private ListaProdutosSvc listaProdutosSvc;
+	private ProductGroupingSvc service;
 	
 	@Autowired
 	@Qualifier("produtos")
-	private List<Produto> listaProdutos;
+	private List<Product> listaProdutos;
 	
 	
 	/**
@@ -38,13 +38,13 @@ public class LdfController {
 	 * @return ResponseEntity<Response<ListaProdutos>>
 	 */	
 	@PostMapping
-	public Map<String, List<Produto>> groupProducts(@RequestBody List<Produto> produtos,
+	public Map<String, List<Product>> groupProducts(@RequestBody List<Product> produtos,
 									  @PathVariable Optional<String> filter, 
 									  @PathVariable Optional<String> order_by) {
 		
 		LOG.info("Submetendo produtos para agrupamento.");
 		
-		for (Produto produto: produtos)
+		for (Product produto: produtos)
 			LOG.info(produto.toString());
 		
 		listaProdutos.addAll(produtos);
@@ -60,7 +60,7 @@ public class LdfController {
 			orderD = order_by.toString();
 		}
 		
-		Map<String, List<Produto>> mapProdutosProcessados = listaProdutosSvc.agrupaProdutosMaster(listaProdutos, filterD, orderD);
+		Map<String, List<Product>> mapProdutosProcessados = service.masterGrouping(listaProdutos, filterD, orderD);
 		
 
 		return mapProdutosProcessados;

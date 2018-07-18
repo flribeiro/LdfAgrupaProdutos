@@ -13,24 +13,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.fabriciolribeiro.ldf.entities.Produto;
+import com.fabriciolribeiro.ldf.entities.Product;
 
 @Service
-public class ListaProdutosSvc {
+public class ProductGroupingSvc {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ListaProdutosSvc.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ProductGroupingSvc.class);
 	
 	@Autowired
-	@Qualifier("produtos")
-	private List<Produto> listaProdutos;
+	@Qualifier("products")
+	private List<Product> listProducts;
 	
 	/**
 	 * Método a ser chamado pela camada de controle para fazer o agrupoamento.
 	 * 
-	 * @param listaProdutos
+	 * @param listProducts
 	 * @return Map<String, List<Produto>>
 	 */
-	public Map<String, List<Produto>> agrupaProdutosMaster(List<Produto> produtos, String filtro, String ordenacao) {
+	public Map<String, List<Product>> masterGrouping(List<Product> produtos, String filtro, String ordenacao) {
 		
 		if (validaFiltro(filtro)) {
 			
@@ -41,14 +41,14 @@ public class ListaProdutosSvc {
 		}
 		
 		
-		Map<String, List<Produto>> produtosPorEan = agrupaProdutosPorEan(produtos);
+		Map<String, List<Product>> produtosPorEan = agrupaProdutosPorEan(produtos);
 		
-		Map<String, List<Produto>> produtosPorTitle = agrupaProdutosPorTitle(produtos);
+		Map<String, List<Product>> produtosPorTitle = agrupaProdutosPorTitle(produtos);
 		// ordenação
-		Map<String, List<Produto>> produtosPorBrand = agrupaProdutosPorBrand(produtos);
+		Map<String, List<Product>> produtosPorBrand = agrupaProdutosPorBrand(produtos);
 		// ordenação
 		
-		Map<String, List<Produto>> produtosAgrupadosCombinados = produtosPorEan;
+		Map<String, List<Product>> produtosAgrupadosCombinados = produtosPorEan;
 		produtosAgrupadosCombinados.putAll(produtosPorTitle);
 		produtosAgrupadosCombinados.putAll(produtosPorBrand);
 		return produtosAgrupadosCombinados;
@@ -97,17 +97,17 @@ public class ListaProdutosSvc {
 	/**
 	 * Retorna produtos similares de acordo com EAN.
 	 * 
-	 *  @param listaProdutos
+	 *  @param listProducts
 	 *  @return Map<String, List<Produto>>
 	 */
-	private Map<String, List<Produto>> agrupaProdutosPorEan(List<Produto> produtos) {
+	private Map<String, List<Product>> agrupaProdutosPorEan(List<Product> produtos) {
 		LOG.info("Agrupando produtos por EAN.");
-		Map<String, List<Produto>> agrupamentoPorMarca = produtos.stream().collect(Collectors.groupingBy(Produto::getBrand));
+		Map<String, List<Product>> agrupamentoPorMarca = produtos.stream().collect(Collectors.groupingBy(Product::getBrand));
 		
-		Map<String, List<Produto>> agrupamentoPorMarcaPorEan = new HashMap<>();
+		Map<String, List<Product>> agrupamentoPorMarcaPorEan = new HashMap<>();
 		
-		for (Map.Entry<String, List<Produto>> entry: agrupamentoPorMarca.entrySet()) {
-			agrupamentoPorMarcaPorEan = entry.getValue().stream().collect(Collectors.groupingBy(Produto::getEan));
+		for (Map.Entry<String, List<Product>> entry: agrupamentoPorMarca.entrySet()) {
+			agrupamentoPorMarcaPorEan = entry.getValue().stream().collect(Collectors.groupingBy(Product::getEan));
 		}
 		
 		return agrupamentoPorMarcaPorEan;		
@@ -117,23 +117,23 @@ public class ListaProdutosSvc {
 	/**
 	 * Retorna produtos similares de acordo com título.
 	 * 
-	 *  @param listaProdutos
+	 *  @param listProducts
 	 *  @return Map<String, List<Produto>>
 	 */
-	private Map<String, List<Produto>> agrupaProdutosPorTitle(List<Produto> produtos) {
+	private Map<String, List<Product>> agrupaProdutosPorTitle(List<Product> produtos) {
 		LOG.info("Agrupando produtos por título.");
-		return produtos.stream().collect(Collectors.groupingBy(Produto::getTitle));
+		return produtos.stream().collect(Collectors.groupingBy(Product::getTitle));
 	}
 	
 	/**
 	 * Retorna produtos similares de acordo com marca.
 	 * 
-	 *  @param listaProdutos
+	 *  @param listProducts
 	 *  @return Map<String, List<Produto>>
 	 */
-	private Map<String, List<Produto>> agrupaProdutosPorBrand(List<Produto> produtos) {
+	private Map<String, List<Product>> agrupaProdutosPorBrand(List<Product> produtos) {
 		LOG.info("Agrupando produtos por marca.");
-		return produtos.stream().collect(Collectors.groupingBy(Produto::getBrand));
+		return produtos.stream().collect(Collectors.groupingBy(Product::getBrand));
 	}
 	
 	/**
@@ -142,8 +142,8 @@ public class ListaProdutosSvc {
 	 * @param campo
 	 * @param orientacao
 	 */
-	public void ordenaLista(List<Produto> listaProdutos, String campo, String orientacao) {
-		Comparator<Produto> comparator = (p1, p2)->p1.getStock()-p2.getStock();
+	public void ordenaLista(List<Product> listaProdutos, String campo, String orientacao) {
+		Comparator<Product> comparator = (p1, p2)->p1.getStock()-p2.getStock();
 		switch (campo) {
 			case "id":
 				comparator = (p1, p2)->p1.getId().compareTo(p2.getId());
