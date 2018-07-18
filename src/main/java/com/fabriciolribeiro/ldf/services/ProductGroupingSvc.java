@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import com.fabriciolribeiro.ldf.entities.Grouping;
 import com.fabriciolribeiro.ldf.entities.Product;
+import com.fabriciolribeiro.ldf.entities.Result;
 
 @Service
 public class ProductGroupingSvc {
@@ -30,68 +32,74 @@ public class ProductGroupingSvc {
 	 * @param listProducts
 	 * @return Map<String, List<Produto>>
 	 */
-	public Map<String, List<Product>> masterGrouping(List<Product> produtos, String filtro, String ordenacao) {
+	public Result masterGrouping(List<Product> products, String filter, String order) {
 		
-		if (validaFiltro(filtro)) {
+		if (validateFilter(filter)) {
 			
 		}
 		
-		if (validaOrdenacao(ordenacao)) {
+		if (validateOrder(order)) {
 			
 		}
 		
+		Result result = new Result();
 		
-		Map<String, List<Product>> produtosPorEan = agrupaProdutosPorEan(produtos);
+		result.join(groupProductsByEan(products));
 		
-		Map<String, List<Product>> produtosPorTitle = agrupaProdutosPorTitle(produtos);
+		result.join(groupProductsByTitle(products));
+
+		result.join(groupProductsByBrand(products));
 		// ordenação
-		Map<String, List<Product>> produtosPorBrand = agrupaProdutosPorBrand(produtos);
-		// ordenação
 		
-		Map<String, List<Product>> produtosAgrupadosCombinados = produtosPorEan;
-		produtosAgrupadosCombinados.putAll(produtosPorTitle);
-		produtosAgrupadosCombinados.putAll(produtosPorBrand);
-		return produtosAgrupadosCombinados;
+		return result;
 	}
 	
-	private Boolean validaCampo(String param) {
-		String[] campos = {"id", "ean", "title", "brand", "price", "stock"};
+	private Boolean validateField(String field) {
+		String[] fields = {"id", "ean", "title", "brand", "price", "stock"};
 		
-		if (Arrays.asList(campos).contains(param)) {
+		if (Arrays.asList(fields).contains(field)) {
 			return true;
 		}
 		
 		return false;
 	}
 	
-	private Boolean validaFiltro(String filtro) {
-		String[] sFiltro;
-		if (filtro.contains(":")) {
-		    sFiltro = filtro.split(":");
-		} else {
-			return false;
+	private Boolean validateDirection(String direction) {
+		if (direction == "asc" || direction == "desc") {
+			return true;
 		}
 		
-		if (validaCampo(sFiltro[0])) {
-			return true;
-		} else {
-		    return false; 
-		}
+		return false;
 	}
 	
-	private Boolean validaOrdenacao(String ordenacao) {
-		String[] sOrdenacao;
-		if (ordenacao.contains(":")) {
-			sOrdenacao = ordenacao.split(":");
+	private Boolean validateFilter(String filter) {
+		String[] sFilter;
+		if (filter.contains(":")) {
+		    sFilter = filter.split(":");
 		} else {
 			return false;
 		}
 		
-		if (validaCampo(sOrdenacao[0])) {
+		if (validateField(sFilter[0])) {
 			return true;
+		}
+		
+		return false;
+	}
+	
+	private Boolean validateOrder(String order) {
+		String[] sOrder;
+		if (order.contains(":")) {
+			sOrder = order.split(":");
 		} else {
 			return false;
 		}
+		
+		if (validateField(sOrder[0]) && validateDirection(sOrder[1])) {
+			return true;
+		} 
+		
+		return false;
 	}
 	
 	/**
@@ -100,17 +108,25 @@ public class ProductGroupingSvc {
 	 *  @param listProducts
 	 *  @return Map<String, List<Produto>>
 	 */
-	private Map<String, List<Product>> agrupaProdutosPorEan(List<Product> produtos) {
+	private Result groupProductsByEan(List<Product> products) {
 		LOG.info("Agrupando produtos por EAN.");
-		Map<String, List<Product>> agrupamentoPorMarca = produtos.stream().collect(Collectors.groupingBy(Product::getBrand));
+		Map<String, List<Product>> groupingByEanMap = entry.getValue().stream().collect(Collectors.groupingBy(Product::getEan));
 		
-		Map<String, List<Product>> agrupamentoPorMarcaPorEan = new HashMap<>();
+		Grouping groupingByEan = new Grouping();
+		Result result = new Result();
 		
-		for (Map.Entry<String, List<Product>> entry: agrupamentoPorMarca.entrySet()) {
-			agrupamentoPorMarcaPorEan = entry.getValue().stream().collect(Collectors.groupingBy(Product::getEan));
+		// Eliminar únicos
+		for (Map.Entry<String, List<Product>> entry: groupingByEanMap.entrySet()) {
+			if (entry.getValue().size() == 1) {
+				groupingByEanMap.remove(entry);
+			} else {
+				groupingByEan.setDescription(entry.getKey());
+				groupingByEan.setProdutos(entry.getValue());
+				result.addGrouping(groupingByEan);
+			}
 		}
 		
-		return agrupamentoPorMarcaPorEan;		
+		return result;		
 	}
 	
 	
@@ -120,9 +136,9 @@ public class ProductGroupingSvc {
 	 *  @param listProducts
 	 *  @return Map<String, List<Produto>>
 	 */
-	private Map<String, List<Product>> agrupaProdutosPorTitle(List<Product> produtos) {
+	private Map<String, List<Product>> groupProductsByTitle(List<Product> products) {
 		LOG.info("Agrupando produtos por título.");
-		return produtos.stream().collect(Collectors.groupingBy(Product::getTitle));
+		return products.stream().collect(Collectors.groupingBy(Product::getTitle));
 	}
 	
 	/**
@@ -131,20 +147,20 @@ public class ProductGroupingSvc {
 	 *  @param listProducts
 	 *  @return Map<String, List<Produto>>
 	 */
-	private Map<String, List<Product>> agrupaProdutosPorBrand(List<Product> produtos) {
+	private Map<String, List<Product>> groupProductsByBrand(List<Product> products) {
 		LOG.info("Agrupando produtos por marca.");
-		return produtos.stream().collect(Collectors.groupingBy(Product::getBrand));
+		return products.stream().collect(Collectors.groupingBy(Product::getBrand));
 	}
 	
 	/**
 	 * Ordena lista de produtos segundo critério padrão, ou critério definido pelo cliente.
-	 * @param listaProdutos
-	 * @param campo
-	 * @param orientacao
+	 * @param products
+	 * @param field
+	 * @param direction
 	 */
-	public void ordenaLista(List<Product> listaProdutos, String campo, String orientacao) {
+	public void orderProductList(List<Product> products, String field, String direction) {
 		Comparator<Product> comparator = (p1, p2)->p1.getStock()-p2.getStock();
-		switch (campo) {
+		switch (field) {
 			case "id":
 				comparator = (p1, p2)->p1.getId().compareTo(p2.getId());
 			case "ean":
@@ -159,10 +175,10 @@ public class ProductGroupingSvc {
 				break;
 		}
 		
-		if (orientacao == "desc") {
-			listaProdutos.sort(comparator.reversed());
+		if (direction == "desc") {
+			products.sort(comparator.reversed());
 		} else {
-			listaProdutos.sort(comparator);
+			products.sort(comparator);
 		}
 		
 	}

@@ -12,15 +12,15 @@ import com.fabriciolribeiro.ldf.entities.Product;
 @SpringBootApplication
 public class LuizalabsDesafioFabricioApplication {
 	
-	private List<Product> produtos;
+	private List<Product> products;
 
 	public static void main(String[] args) {
 		SpringApplication.run(LuizalabsDesafioFabricioApplication.class, args);
 	}
 	
-	@Bean("produtos")
-	public List<Product> getProdutos() {
-		produtos = new ArrayList<>();
-		return produtos;
+	@Bean("products")
+	public List<Product> getProducts() {
+		products = new ArrayList<>();
+		return products;
 	}
 }

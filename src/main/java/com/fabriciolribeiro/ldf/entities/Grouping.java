@@ -11,6 +11,9 @@ public class Grouping {
 		this.products = products;
 	}
 
+	public Grouping() {
+	}
+
 	public String getDescription() {
 		return description;
 	}

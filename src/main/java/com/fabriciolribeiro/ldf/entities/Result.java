@@ -25,8 +25,8 @@ public class Result {
 		this.data.add(grouping);
 	}
 	
-	public void join(List<Grouping> grouping) {
-		this.data.addAll(grouping);
+	public void join(Result result) {
+		this.data.addAll(result.getData());
 	}
 	
 }
