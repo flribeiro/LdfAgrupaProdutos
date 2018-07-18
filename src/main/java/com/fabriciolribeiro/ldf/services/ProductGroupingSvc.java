@@ -3,9 +3,11 @@ package com.fabriciolribeiro.ldf.services;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -146,10 +148,27 @@ public class ProductGroupingSvc {
 		for (int i = 0; i < products.size(); i++) {
 			String[] p0Title = products.get(i).getTitle().split(" ");
 			String[] p1Title = products.get(i++).getTitle().split(" ");
-			// Compara as duas
+			if (compareTitles(p0Title, p1Title)) {
+				// serão agrupados
+			} else {
+				// testa com próximo
+			}
 		}
 		
 		return result;
+	}
+	
+	private Boolean compareTitles(String[] p0, String[] p1) {
+		// encontrar quantidade de palavras em comum entre os dois arrays de string
+		Set<String> s1 = new HashSet<String>(Arrays.asList(p0));
+		Set<String> s2 = new HashSet<String>(Arrays.asList(p1));
+		s1.retainAll(s2);
+
+		if (s1.size() >= 2) {
+			return true;
+		}
+		
+		return false;
 	}
 	
 	/**
