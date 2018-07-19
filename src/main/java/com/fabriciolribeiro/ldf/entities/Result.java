@@ -1,5 +1,6 @@
 package com.fabriciolribeiro.ldf.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Result {
@@ -10,7 +11,7 @@ public class Result {
 	}
 	
 	public Result() {
-		
+		this.data = new ArrayList<>();
 	}
 
 	public List<Grouping> getData() {

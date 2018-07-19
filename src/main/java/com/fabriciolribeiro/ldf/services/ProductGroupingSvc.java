@@ -1,11 +1,11 @@
 package com.fabriciolribeiro.ldf.services;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -118,26 +118,30 @@ public class ProductGroupingSvc {
 		Result result = new Result();
 		
 		// Eliminar únicos
-//		for (Map.Entry<String, List<Product>> entry: groupingByEanMap.entrySet()) {
-//			if (entry.getValue().size() == 1) {
-//				groupingByEanMap.remove(entry.getKey());
-//			} else {
-//				groupingByEan.setDescription(entry.getKey());
-//				groupingByEan.setProdutos(entry.getValue());
-//				result.addGrouping(groupingByEan);
-//			}
-//		}
-		
-		// Novo for loop para eliminar únicos.
 		for (String ean: groupingByEanMap.keySet()) {
 			if (groupingByEanMap.get(ean).size() > 1) {
 				groupingByEan.setDescription(ean);
-				groupingByEan.setProdutos(groupingByEanMap.get(ean));
+				groupingByEan.setItems(groupingByEanMap.get(ean));
 				LOG.info(ean + " sendo agrupado.");
 				LOG.info("Novo grouping: " + groupingByEan.toString());
-				result.addGrouping(groupingByEan);
+				
+			}
+			
+		}
+		
+		// Eliminando marcas diferentes para mesmo EAN.
+		groupingByEanMap.clear();
+		groupingByEanMap = groupingByEan.getItems().stream().collect(Collectors.groupingBy(Product::getBrand));
+		groupingByEan.clear();
+		
+		for (String brand: groupingByEanMap.keySet()) {
+			if (groupingByEanMap.get(brand).size() > 1) {
+				groupingByEan.setDescription(groupingByEanMap.get(brand).get(0).getEan());
 			}
 		}
+		
+		if (groupingByEan.getItems().size() > 0)
+			result.addGrouping(groupingByEan);
 		
 		return result;		
 	}
@@ -153,26 +157,34 @@ public class ProductGroupingSvc {
 		LOG.info("Agrupando produtos por título.");
 		
 		Result result = new Result();
-		Grouping grouping = new Grouping();
+		Grouping groupingByTitle = new Grouping();
+		Map<String, List<Product>> groupingByTitleMap = new HashMap<String, List<Product>>();
+		List<Product> productsByTitle = new ArrayList<>();
+		
 		
 		for (int i = 0; i < products.size(); i++) {
+			String[] p0Title = products.get(i).getTitle().toLowerCase().split(" ");
+			productsByTitle.add(products.get(i));
+			
 			for (int j = i+1; j < products.size(); j++) {
-				String[] p0Title = products.get(i).getTitle().split(" ");
-				String[] p1Title = products.get(j).getTitle().split(" ");
-				if (compareTitles(p0Title, p1Title)) {
-					grouping.setDescription(products.get(i).getTitle());
-					grouping.addProduto(products.get(i));
-					grouping.addProduto(products.get(j));
-				} else {
-					continue;
-				}
+				String[] p1Title = products.get(j).getTitle().toLowerCase().split(" ");
+				if (compareTitles(p0Title, p1Title))
+					productsByTitle.add(products.get(j));
 			}
-			if (grouping.getProdutos().size() > 2)
-				result.addGrouping(grouping);
-			else {
-				grouping.setDescription("");
-				grouping.getProdutos().clear();
+			if (productsByTitle.size() > 1) {
+				groupingByTitleMap.put(products.get(i).getTitle(), new ArrayList<Product>(productsByTitle));
 			}
+			productsByTitle.clear();
+			
+		}
+		
+		for (String title: groupingByTitleMap.keySet()) {
+			groupingByTitle.setDescription(title);
+			groupingByTitle.setItems(groupingByTitleMap.get(title));
+			LOG.info(title + " sendo agrupado.");
+			LOG.info("Novo grouping: " + groupingByTitle.toString());
+			result.addGrouping(new Grouping(groupingByTitle.getDescription(), groupingByTitle.getItems()));
+//			groupingByTitle.clear();
 		}
 		
 		return result;
@@ -187,26 +199,23 @@ public class ProductGroupingSvc {
 	 */
 	private Boolean compareTitles(String[] p0, String[] p1) {
 		// encontrar quantidade de palavras em comum entre os dois arrays de string
-		List<String> p0List = Arrays.asList(p0);
-		for (String string0: p0List) {
-			if (string0.length() < 3)
-				p0List.remove(string0);
-		}
-		Set<String> s0 = new HashSet<String>(p0List);
-		
-		List<String> p1List = Arrays.asList(p1);
-		for (String string1: p1List) {
-			if (string1.length() < 3)
-				p0List.remove(string1);
-		}
-		Set<String> s1 = new HashSet<String>(p1List);
-		
-		s0.retainAll(s1);
-
-		if (s0.size() >= 2) {
-			return true;
-		}
-		
+	    Arrays.sort(p0);
+	    Arrays.sort(p1);
+	 
+	    ArrayList<String> list = new ArrayList<String>();
+	    for(int i=0; i<p0.length; i++){
+	        if(i==0 || (i>0 && p0[i]!=p0[i-1])){
+	            if(Arrays.binarySearch(p1, p0[i])>-1){
+	            	if(p0[i].length() > 2)
+	            		list.add(p0[i]);
+	            }
+	        }
+	    }
+	 
+	    LOG.info("Array de intersecção: " + list.toString());
+	    
+	    if (list.size() > 2)
+	    	return true;
 		return false;
 	}
 	
@@ -224,12 +233,12 @@ public class ProductGroupingSvc {
 		Result result = new Result();
 		
 		// Eliminar únicos
-		for (Map.Entry<String, List<Product>> entry: groupingByBrandMap.entrySet()) {
-			if (entry.getValue().size() == 1) {
-				groupingByBrandMap.remove(entry.getKey());
-			} else {
-				groupingByBrand.setDescription(entry.getKey());
-				groupingByBrand.setProdutos(entry.getValue());
+		for (String brand: groupingByBrandMap.keySet()) {
+			if (groupingByBrandMap.get(brand).size() > 1) {
+				groupingByBrand.setDescription(brand);
+				groupingByBrand.setItems(groupingByBrandMap.get(brand));
+				LOG.info(brand + " sendo agrupado.");
+				LOG.info("Novo grouping: " + groupingByBrand.toString());
 				result.addGrouping(groupingByBrand);
 			}
 		}
