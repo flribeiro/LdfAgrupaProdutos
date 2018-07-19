@@ -60,10 +60,10 @@ public class LdfController {
 			orderD = order_by.toString();
 		}
 		
-		Result mapProdutosProcessados = service.masterGrouping(productsList, filterD, orderD);
-		
+		Result produtosProcessados = service.masterGrouping(productsList, filterD, orderD);
+		productsList.clear();
 
-		return mapProdutosProcessados;
+		return produtosProcessados;
 	}	
 
 	

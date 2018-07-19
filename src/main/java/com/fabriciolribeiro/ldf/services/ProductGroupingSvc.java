@@ -1,5 +1,6 @@
 package com.fabriciolribeiro.ldf.services;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -35,12 +36,23 @@ public class ProductGroupingSvc {
 	 */
 	public Result masterGrouping(List<Product> products, String filter, String order) {
 		
-		if (validateFilter(filter)) {
-			
-		}
+		LOG.info("Lista de Produtos na chamada do SERVICE com " + products.size() + " produtos: \n" + products.toString());
+		
+		String[] filterValue = new String[2];
+		if (filter.length() > 0 && validateFilter(filter)) {
+			filterValue = filter.toLowerCase().split(":");
+		} 
+
+		products = ignoreInvalidProducts(products, filterValue);
+		LOG.info("Nova lista de Produtos após ignorar inválidos contém " + products.size() + " produtos: \n" + products.toString());
+		
+		String[] orderValue = new String[2];
 		
 		if (validateOrder(order)) {
-			
+			orderValue = filter.toLowerCase().split(":");
+		} else {
+			orderValue[0] = "stock";
+			orderValue[1] = "desc";
 		}
 		
 		Result result = new Result();
@@ -50,9 +62,73 @@ public class ProductGroupingSvc {
 		result.join(groupProductsByTitle(products));
 
 		result.join(groupProductsByBrand(products));
+
 		// ordenação
+		for (Grouping g: result.getData()) {
+			orderProductList(g.getItems(), orderValue);
+		}
+		
+		products.clear();
 		
 		return result;
+	}
+	
+	private List<Product> ignoreInvalidProducts(List<Product> products, String[] filterValue) {
+		
+		List<Product> validProducts = new ArrayList<>();
+		for (Product p: products) {
+			if (p.getTitle().toLowerCase().contains(p.getBrand().toLowerCase())) {
+				validProducts.add(p);
+			} else
+				LOG.info("Produto inválido: " + p.toString());
+		}
+		
+		String field = filterValue[0];
+		String value = filterValue[1];
+		
+		LOG.info("Filtro: " + field + ", " + value + ".");
+		
+		if (field != null && !field.isEmpty()) {
+			switch (field) {
+				case "id":
+					validProducts.forEach(prod->{
+						if (prod.getId() != value)
+							validProducts.remove(prod);
+					});
+				case "ean":
+					validProducts.forEach(prod->{
+						if (prod.getEan() != value)
+							validProducts.remove(prod);
+					});
+				case "title":
+					validProducts.forEach(prod->{
+						if (prod.getTitle() != value)
+							validProducts.remove(prod);
+					});
+				case "brand":
+					validProducts.forEach(prod->{
+						if (prod.getBrand() != value)
+							validProducts.remove(prod);
+					});
+				case "price":
+					validProducts.forEach(prod->{
+						value.replaceAll(",","");
+						BigDecimal bd=new BigDecimal(value);
+						if (prod.getPrice() == bd)
+							validProducts.remove(prod);
+					});
+				case "stock":
+					validProducts.forEach(prod->{
+						if (prod.getStock() != Integer.parseInt(value))
+							validProducts.remove(prod);
+					});
+				default:
+					break;
+			}
+		}
+		
+		LOG.info(validProducts.size() + " produtos após ignorar inválidos: " + validProducts.toString());
+		return validProducts;
 	}
 	
 	private Boolean validateField(String field) {
@@ -184,7 +260,6 @@ public class ProductGroupingSvc {
 			LOG.info(title + " sendo agrupado.");
 			LOG.info("Novo grouping: " + groupingByTitle.toString());
 			result.addGrouping(new Grouping(groupingByTitle.getDescription(), groupingByTitle.getItems()));
-//			groupingByTitle.clear();
 		}
 		
 		return result;
@@ -212,7 +287,6 @@ public class ProductGroupingSvc {
 	        }
 	    }
 	 
-	    LOG.info("Array de intersecção: " + list.toString());
 	    
 	    if (list.size() > 2)
 	    	return true;
@@ -252,7 +326,9 @@ public class ProductGroupingSvc {
 	 * @param field
 	 * @param direction
 	 */
-	public void orderProductList(List<Product> products, String field, String direction) {
+	private void orderProductList(List<Product> products, String[] orderValue) {
+		String field = orderValue[0];
+		String direction = orderValue[1];
 		Comparator<Product> comparator = (p1, p2)->p1.getStock()-p2.getStock();
 		switch (field) {
 			case "id":
