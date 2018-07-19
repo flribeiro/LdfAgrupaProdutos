@@ -42,5 +42,13 @@ public class Grouping {
 		return true;
 	}
 	
+	@Override
+	public String toString() {
+		String representation = "Object Grouping with " + this.products.size() + " products: ";
+		for (Product p: this.products) {
+			representation += p.toString() + " || ";
+		}
+		return representation;
+	}
 
 }

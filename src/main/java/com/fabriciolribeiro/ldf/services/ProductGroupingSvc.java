@@ -2,11 +2,9 @@ package com.fabriciolribeiro.ldf.services;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -120,12 +118,23 @@ public class ProductGroupingSvc {
 		Result result = new Result();
 		
 		// Eliminar únicos
-		for (Map.Entry<String, List<Product>> entry: groupingByEanMap.entrySet()) {
-			if (entry.getValue().size() == 1) {
-				groupingByEanMap.remove(entry.getKey());
-			} else {
-				groupingByEan.setDescription(entry.getKey());
-				groupingByEan.setProdutos(entry.getValue());
+//		for (Map.Entry<String, List<Product>> entry: groupingByEanMap.entrySet()) {
+//			if (entry.getValue().size() == 1) {
+//				groupingByEanMap.remove(entry.getKey());
+//			} else {
+//				groupingByEan.setDescription(entry.getKey());
+//				groupingByEan.setProdutos(entry.getValue());
+//				result.addGrouping(groupingByEan);
+//			}
+//		}
+		
+		// Novo for loop para eliminar únicos.
+		for (String ean: groupingByEanMap.keySet()) {
+			if (groupingByEanMap.get(ean).size() > 1) {
+				groupingByEan.setDescription(ean);
+				groupingByEan.setProdutos(groupingByEanMap.get(ean));
+				LOG.info(ean + " sendo agrupado.");
+				LOG.info("Novo grouping: " + groupingByEan.toString());
 				result.addGrouping(groupingByEan);
 			}
 		}
@@ -138,33 +147,63 @@ public class ProductGroupingSvc {
 	 * Retorna produtos similares de acordo com título.
 	 * 
 	 *  @param listProducts
-	 *  @return Map<String, List<Produto>>
+	 *  @return Result
 	 */
 	private Result groupProductsByTitle(List<Product> products) {
 		LOG.info("Agrupando produtos por título.");
 		
 		Result result = new Result();
+		Grouping grouping = new Grouping();
 		
 		for (int i = 0; i < products.size(); i++) {
-			String[] p0Title = products.get(i).getTitle().split(" ");
-			String[] p1Title = products.get(i++).getTitle().split(" ");
-			if (compareTitles(p0Title, p1Title)) {
-				// serão agrupados
-			} else {
-				// testa com próximo
+			for (int j = i+1; j < products.size(); j++) {
+				String[] p0Title = products.get(i).getTitle().split(" ");
+				String[] p1Title = products.get(j).getTitle().split(" ");
+				if (compareTitles(p0Title, p1Title)) {
+					grouping.setDescription(products.get(i).getTitle());
+					grouping.addProduto(products.get(i));
+					grouping.addProduto(products.get(j));
+				} else {
+					continue;
+				}
+			}
+			if (grouping.getProdutos().size() > 2)
+				result.addGrouping(grouping);
+			else {
+				grouping.setDescription("");
+				grouping.getProdutos().clear();
 			}
 		}
 		
 		return result;
 	}
 	
+	/**
+	 * Encontra a quantidade de palavras em comum entre os dois arrays de string e retorna true se obedecer ao critério de similaridade,
+	 * ou seja, 2 ou mais palavras com mais de 2 letras coincidentes.
+	 * 
+	 *  @params p0, p1
+	 *  @return Boolean 
+	 */
 	private Boolean compareTitles(String[] p0, String[] p1) {
 		// encontrar quantidade de palavras em comum entre os dois arrays de string
-		Set<String> s1 = new HashSet<String>(Arrays.asList(p0));
-		Set<String> s2 = new HashSet<String>(Arrays.asList(p1));
-		s1.retainAll(s2);
+		List<String> p0List = Arrays.asList(p0);
+		for (String string0: p0List) {
+			if (string0.length() < 3)
+				p0List.remove(string0);
+		}
+		Set<String> s0 = new HashSet<String>(p0List);
+		
+		List<String> p1List = Arrays.asList(p1);
+		for (String string1: p1List) {
+			if (string1.length() < 3)
+				p0List.remove(string1);
+		}
+		Set<String> s1 = new HashSet<String>(p1List);
+		
+		s0.retainAll(s1);
 
-		if (s1.size() >= 2) {
+		if (s0.size() >= 2) {
 			return true;
 		}
 		

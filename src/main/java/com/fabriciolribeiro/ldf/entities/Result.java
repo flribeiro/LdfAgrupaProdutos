@@ -29,4 +29,12 @@ public class Result {
 		this.data.addAll(result.getData());
 	}
 	
+	public String toString() {
+		String representation = "Object Result with " + this.data.size() + " Grouping objects: ";
+		for (Grouping p: this.data) {
+			representation += p.toString() + " || ";
+		}
+		return representation;
+	}
+	
 }

@@ -17,7 +17,7 @@ import com.fabriciolribeiro.ldf.entities.Result;
 import com.fabriciolribeiro.ldf.services.ProductGroupingSvc;
 
 @RestController
-@RequestMapping(value="/agrupamento")
+@RequestMapping(value="/grouping")
 public class LdfController {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(LdfController.class);
@@ -26,8 +26,8 @@ public class LdfController {
 	private ProductGroupingSvc service;
 	
 	@Autowired
-	@Qualifier("produtos")
-	private List<Product> listaProdutos;
+	@Qualifier("products")
+	private List<Product> productsList;
 	
 	
 	/**
@@ -38,16 +38,16 @@ public class LdfController {
 	 * @return ResponseEntity<Response<ListaProdutos>>
 	 */	
 	@PostMapping
-	public Result groupProducts(@RequestBody List<Product> produtos,
+	public Result groupProducts(@RequestBody List<Product> products,
 									  @PathVariable Optional<String> filter, 
 									  @PathVariable Optional<String> order_by) {
 		
 		LOG.info("Submetendo produtos para agrupamento.");
 		
-		for (Product produto: produtos)
-			LOG.info(produto.toString());
+		for (Product product: products)
+			LOG.info(product.toString());
 		
-		listaProdutos.addAll(produtos);
+		productsList.addAll(products);
 		
 		String filterD = "";
 		String orderD = "";
@@ -60,7 +60,7 @@ public class LdfController {
 			orderD = order_by.toString();
 		}
 		
-		Result mapProdutosProcessados = service.masterGrouping(listaProdutos, filterD, orderD);
+		Result mapProdutosProcessados = service.masterGrouping(productsList, filterD, orderD);
 		
 
 		return mapProdutosProcessados;
