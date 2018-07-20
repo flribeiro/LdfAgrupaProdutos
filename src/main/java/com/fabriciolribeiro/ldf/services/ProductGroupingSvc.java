@@ -36,24 +36,13 @@ public class ProductGroupingSvc {
 	 */
 	public Result masterGrouping(List<Product> products, String filter, String order) {
 		
-		LOG.info("Lista de Produtos na chamada do SERVICE com " + products.size() + " produtos: \n" + products.toString());
 		
 		String[] filterValue = new String[2];
-		if (filter.length() > 0 && validateFilter(filter)) {
+		if (filter.length() > 0 && validateFilter(filter)) 
 			filterValue = filter.toLowerCase().split(":");
-		} 
 
-		products = ignoreInvalidProducts(products, filterValue);
+		products = filterProducts(products, filterValue);
 		LOG.info("Nova lista de Produtos após ignorar inválidos contém " + products.size() + " produtos: \n" + products.toString());
-		
-		String[] orderValue = new String[2];
-		
-		if (validateOrder(order)) {
-			orderValue = filter.toLowerCase().split(":");
-		} else {
-			orderValue[0] = "stock";
-			orderValue[1] = "desc";
-		}
 		
 		Result result = new Result();
 		
@@ -64,6 +53,16 @@ public class ProductGroupingSvc {
 		result.join(groupProductsByBrand(products));
 
 		// ordenação
+		String[] orderValue = new String[2];
+		
+		if (validateOrder(order)) {
+			orderValue = order.toLowerCase().split(":");
+		} else {
+			orderValue[0] = "stock";
+			orderValue[1] = "desc";
+		}
+		
+				
 		for (Grouping g: result.getData()) {
 			orderProductList(g.getItems(), orderValue);
 		}
@@ -73,78 +72,76 @@ public class ProductGroupingSvc {
 		return result;
 	}
 	
-	private List<Product> ignoreInvalidProducts(List<Product> products, String[] filterValue) {
+	private List<Product> filterProducts(List<Product> products, String[] filterValue) {
 		
 		List<Product> validProducts = new ArrayList<>();
 		for (Product p: products) {
 			if (p.getTitle().toLowerCase().contains(p.getBrand().toLowerCase())) {
 				validProducts.add(p);
-			} else
-				LOG.info("Produto inválido: " + p.toString());
-		}
-		
-		String field = filterValue[0];
-		String value = filterValue[1];
-		
-		LOG.info("Filtro: " + field + ", " + value + ".");
-		
-		if (field != null && !field.isEmpty()) {
-			switch (field) {
-				case "id":
-					validProducts.forEach(prod->{
-						if (prod.getId() != value)
-							validProducts.remove(prod);
-					});
-				case "ean":
-					validProducts.forEach(prod->{
-						if (prod.getEan() != value)
-							validProducts.remove(prod);
-					});
-				case "title":
-					validProducts.forEach(prod->{
-						if (prod.getTitle() != value)
-							validProducts.remove(prod);
-					});
-				case "brand":
-					validProducts.forEach(prod->{
-						if (prod.getBrand() != value)
-							validProducts.remove(prod);
-					});
-				case "price":
-					validProducts.forEach(prod->{
-						value.replaceAll(",","");
-						BigDecimal bd=new BigDecimal(value);
-						if (prod.getPrice() == bd)
-							validProducts.remove(prod);
-					});
-				case "stock":
-					validProducts.forEach(prod->{
-						if (prod.getStock() != Integer.parseInt(value))
-							validProducts.remove(prod);
-					});
-				default:
-					break;
 			}
 		}
 		
 		LOG.info(validProducts.size() + " produtos após ignorar inválidos: " + validProducts.toString());
+		
+		String field = filterValue[0];
+		String value = filterValue[1];
+		
+		
+		if (field != null && !field.isEmpty()) {
+			List<Product> filteredProducts = new ArrayList<>();
+			
+			switch (field) {
+				case "id":
+					filteredProducts = validProducts.stream().filter(prod -> prod.getId()
+							.equals(value)).collect(Collectors.toList());
+					break;
+				case "ean":
+					 filteredProducts = validProducts.stream().filter(prod -> prod.getEan()
+								.equals(value)).collect(Collectors.toList());
+					 break;
+				case "title":
+					filteredProducts = validProducts.stream().filter(prod -> prod.getTitle()
+							.equals(value)).collect(Collectors.toList());
+					break;
+				case "brand":
+					filteredProducts = validProducts.stream().filter(prod -> prod.getBrand()
+							.equals(value)).collect(Collectors.toList());
+					break;
+				case "price":
+					value.replaceAll(",","");
+					BigDecimal bdPrice = new BigDecimal(value);
+					filteredProducts = validProducts.stream().filter(prod -> prod.getPrice()
+							.equals(bdPrice)).collect(Collectors.toList());
+					break;
+				case "stock":
+					filteredProducts = validProducts.stream().filter(prod -> Integer.toString(prod.getStock())
+							.equals(value)).collect(Collectors.toList());
+					break;
+				default:
+					break;
+			}
+			
+			LOG.info(filteredProducts.size() + " produtos após filtragem.");
+			
+			if (!filteredProducts.isEmpty())
+				return filteredProducts;
+		}
+		
 		return validProducts;
 	}
 	
 	private Boolean validateField(String field) {
 		String[] fields = {"id", "ean", "title", "brand", "price", "stock"};
 		
-		if (Arrays.asList(fields).contains(field)) {
+		if (Arrays.asList(fields).contains(field))
 			return true;
-		}
 		
 		return false;
 	}
 	
 	private Boolean validateDirection(String direction) {
-		if (direction == "asc" || direction == "desc") {
+		if (direction.equals("asc") || direction.equals("desc")) 
 			return true;
-		}
 		
 		return false;
 	}
@@ -166,15 +163,13 @@ public class ProductGroupingSvc {
 	
 	private Boolean validateOrder(String order) {
 		String[] sOrder;
-		if (order.contains(":")) {
+		if (order.contains(":")) 
 			sOrder = order.split(":");
-		} else {
+		else
 			return false;
-		}
 		
-		if (validateField(sOrder[0]) && validateDirection(sOrder[1])) {
+		if (validateField(sOrder[0]) && validateDirection(sOrder[1]))
 			return true;
-		} 
 		
 		return false;
 	}
@@ -198,8 +193,6 @@ public class ProductGroupingSvc {
 			if (groupingByEanMap.get(ean).size() > 1) {
 				groupingByEan.setDescription(ean);
 				groupingByEan.setItems(groupingByEanMap.get(ean));
-				LOG.info(ean + " sendo agrupado.");
-				LOG.info("Novo grouping: " + groupingByEan.toString());
 				
 			}
 			
@@ -257,8 +250,6 @@ public class ProductGroupingSvc {
 		for (String title: groupingByTitleMap.keySet()) {
 			groupingByTitle.setDescription(title);
 			groupingByTitle.setItems(groupingByTitleMap.get(title));
-			LOG.info(title + " sendo agrupado.");
-			LOG.info("Novo grouping: " + groupingByTitle.toString());
 			result.addGrouping(new Grouping(groupingByTitle.getDescription(), groupingByTitle.getItems()));
 		}
 		
@@ -311,8 +302,6 @@ public class ProductGroupingSvc {
 			if (groupingByBrandMap.get(brand).size() > 1) {
 				groupingByBrand.setDescription(brand);
 				groupingByBrand.setItems(groupingByBrandMap.get(brand));
-				LOG.info(brand + " sendo agrupado.");
-				LOG.info("Novo grouping: " + groupingByBrand.toString());
 				result.addGrouping(groupingByBrand);
 			}
 		}
@@ -323,30 +312,39 @@ public class ProductGroupingSvc {
 	/**
 	 * Ordena lista de produtos segundo critério padrão, ou critério definido pelo cliente.
 	 * @param products
-	 * @param field
-	 * @param direction
+	 * @param orderValue
 	 */
 	private void orderProductList(List<Product> products, String[] orderValue) {
 		String field = orderValue[0];
 		String direction = orderValue[1];
 		Comparator<Product> comparator = (p1, p2)->p1.getStock()-p2.getStock();
+		
+		LOG.info("Ordenando por " + field + " em ordem " + direction + ".");
+		
 		switch (field) {
 			case "id":
+				LOG.info("Entrou no switch de ordenação por Id.");
 				comparator = (p1, p2)->p1.getId().compareTo(p2.getId());
+				break;
 			case "ean":
 				comparator = (p1, p2)->p1.getEan().compareTo(p2.getEan());
+				break;
 			case "title":
 				comparator = (p1, p2)->p1.getTitle().compareTo(p2.getTitle());
+				break;
 			case "brand":
 				comparator = (p1, p2)->p1.getBrand().compareTo(p2.getBrand());
+				break;
 			case "price":
 				comparator = (p1, p2)->p1.getPrice().compareTo(p2.getPrice());
+				break;
 			default:
 				break;
 		}
 		
-		if (direction == "desc") {
+		if (direction.equals("desc")) {
 			products.sort(comparator.reversed());
+			
 		} else {
 			products.sort(comparator);
 		}

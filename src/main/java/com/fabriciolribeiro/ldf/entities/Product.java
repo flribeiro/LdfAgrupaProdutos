@@ -13,6 +13,15 @@ public class Product {
 	public Product() {
 		
 	}
+	
+    public Product(String id, String ean, String title, String brand, BigDecimal price, int stock) {
+        this.id = id;
+        this.ean = ean;
+        this.title = title;
+        this.brand = brand;
+        this.price = price;
+        this.stock = stock;
+    }
 
 	public String getId() {
 		return id;

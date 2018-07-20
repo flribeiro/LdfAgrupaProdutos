@@ -1,15 +1,14 @@
 package com.fabriciolribeiro.ldf.controllers;
 
 import java.util.List;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fabriciolribeiro.ldf.entities.Product;
@@ -39,8 +38,8 @@ public class LdfController {
 	 */	
 	@PostMapping
 	public Result groupProducts(@RequestBody List<Product> products,
-									  @PathVariable Optional<String> filter, 
-									  @PathVariable Optional<String> order_by) {
+									  @RequestParam(value="filter", required=false) String filter, 
+									  @RequestParam(value="order_by", required=false) String order_by) {
 		
 		LOG.info("Submetendo produtos para agrupamento.");
 		
@@ -52,14 +51,14 @@ public class LdfController {
 		String filterD = "";
 		String orderD = "";
 		
-		if (filter.isPresent()) {
-			filterD = filter.toString();
+		if (filter != null && filter.length() > 0) {
+			filterD = filter;
 		}
 		
-		if (order_by.isPresent()) {
-			orderD = order_by.toString();
+		if (order_by != null && order_by.length() > 0) {
+			orderD = order_by;
 		}
-		
+				
 		Result produtosProcessados = service.masterGrouping(productsList, filterD, orderD);
 		productsList.clear();
 
