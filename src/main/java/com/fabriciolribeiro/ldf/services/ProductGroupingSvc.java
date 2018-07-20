@@ -30,9 +30,9 @@ public class ProductGroupingSvc {
 	
 	/**
 	 * Método a ser chamado pela camada de controle para fazer o agrupoamento.
-	 * 
-	 * @param listProducts
-	 * @return Map<String, List<Produto>>
+	 *
+	 * @param products, filter, order
+	 * @return Result
 	 */
 	public Result masterGrouping(List<Product> products, String filter, String order) {
 		
@@ -72,7 +72,7 @@ public class ProductGroupingSvc {
 		return result;
 	}
 	
-	private List<Product> filterProducts(List<Product> products, String[] filterValue) {
+	public List<Product> filterProducts(List<Product> products, String[] filterValue) {
 		
 		List<Product> validProducts = new ArrayList<>();
 		for (Product p: products) {
@@ -146,7 +146,7 @@ public class ProductGroupingSvc {
 		return false;
 	}
 	
-	private Boolean validateFilter(String filter) {
+	public Boolean validateFilter(String filter) {
 		String[] sFilter;
 		if (filter.contains(":")) {
 		    sFilter = filter.split(":");
@@ -161,7 +161,7 @@ public class ProductGroupingSvc {
 		return false;
 	}
 	
-	private Boolean validateOrder(String order) {
+	public Boolean validateOrder(String order) {
 		String[] sOrder;
 		if (order.contains(":")) 
 			sOrder = order.split(":");
@@ -177,10 +177,10 @@ public class ProductGroupingSvc {
 	/**
 	 * Retorna produtos similares de acordo com EAN.
 	 * 
-	 *  @param listProducts
+	 *  @param products
 	 *  @return Map<String, List<Produto>>
 	 */
-	private Result groupProductsByEan(List<Product> products) {
+	public Result groupProductsByEan(List<Product> products) {
 		LOG.info("Agrupando produtos por EAN.");
 		
 		Map<String, List<Product>> groupingByEanMap = products.stream().collect(Collectors.groupingBy(Product::getEan));
@@ -219,10 +219,10 @@ public class ProductGroupingSvc {
 	/**
 	 * Retorna produtos similares de acordo com título.
 	 * 
-	 *  @param listProducts
+	 *  @param products
 	 *  @return Result
 	 */
-	private Result groupProductsByTitle(List<Product> products) {
+	public Result groupProductsByTitle(List<Product> products) {
 		LOG.info("Agrupando produtos por título.");
 		
 		Result result = new Result();
@@ -287,10 +287,10 @@ public class ProductGroupingSvc {
 	/**
 	 * Retorna produtos similares de acordo com marca.
 	 * 
-	 *  @param listProducts
+	 *  @param products
 	 *  @return Map<String, List<Produto>>
 	 */
-	private Result groupProductsByBrand(List<Product> products) {
+	public Result groupProductsByBrand(List<Product> products) {
 		LOG.info("Agrupando produtos por marca.");
 		Map<String, List<Product>> groupingByBrandMap = products.stream().collect(Collectors.groupingBy(Product::getBrand));
 		
@@ -314,7 +314,7 @@ public class ProductGroupingSvc {
 	 * @param products
 	 * @param orderValue
 	 */
-	private void orderProductList(List<Product> products, String[] orderValue) {
+	public void orderProductList(List<Product> products, String[] orderValue) {
 		String field = orderValue[0];
 		String direction = orderValue[1];
 		Comparator<Product> comparator = (p1, p2)->p1.getStock()-p2.getStock();

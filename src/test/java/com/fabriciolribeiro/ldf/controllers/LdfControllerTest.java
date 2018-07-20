@@ -1,4 +1,4 @@
-package com.fabriciolribeiro.ldf;
+package com.fabriciolribeiro.ldf.controllers;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
