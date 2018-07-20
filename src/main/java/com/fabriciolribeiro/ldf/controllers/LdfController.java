@@ -90,7 +90,7 @@ public class LdfController {
 
 
         for (Grouping g: result.getData()) {
-            service.orderProductList(g.getItems(), orderValue);
+            service.orderProductList(g, orderValue);
         }
         // Fim do código trazido do Service
 

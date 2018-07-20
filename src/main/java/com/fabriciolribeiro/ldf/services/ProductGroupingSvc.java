@@ -29,49 +29,12 @@ public class ProductGroupingSvc {
 	private List<Product> listProducts;
 	
 	/**
-	 * Método a ser chamado pela camada de controle para fazer o agrupoamento.
+	 * Elimina produtos ignorados pela filtragem do usuário, se houver. Elimina também produtos
+	 * inválidos (quando "brand" não concorda com a marca que aparece na descrição.
 	 *
-	 * @param products, filter, order
-	 * @return Result
+	 * @param products, filterValue[]
+	 * @return List<Product>
 	 */
-	public Result masterGrouping(List<Product> products, String filter, String order) {
-		
-		
-		String[] filterValue = new String[2];
-		if (filter.length() > 0 && validateFilter(filter)) 
-			filterValue = filter.toLowerCase().split(":");
-
-		products = filterProducts(products, filterValue);
-		LOG.info("Nova lista de Produtos após ignorar inválidos contém " + products.size() + " produtos: \n" + products.toString());
-		
-		Result result = new Result();
-		
-		result.join(groupProductsByEan(products));
-		
-		result.join(groupProductsByTitle(products));
-
-		result.join(groupProductsByBrand(products));
-
-		// ordenação
-		String[] orderValue = new String[2];
-		
-		if (validateOrder(order)) {
-			orderValue = order.toLowerCase().split(":");
-		} else {
-			orderValue[0] = "stock";
-			orderValue[1] = "desc";
-		}
-		
-				
-		for (Grouping g: result.getData()) {
-			orderProductList(g.getItems(), orderValue);
-		}
-		
-		products.clear();
-		
-		return result;
-	}
-	
 	public List<Product> filterProducts(List<Product> products, String[] filterValue) {
 		
 		List<Product> validProducts = new ArrayList<>();
@@ -129,7 +92,13 @@ public class ProductGroupingSvc {
 		
 		return validProducts;
 	}
-	
+
+	/**
+	 * Auxilia na validação do argumento field tanto para o critério de ordenação quanto para o de
+	 * filtragem, a fim de garantir que o nome do campo é válido.
+	 * @param field
+	 * @return Boolean
+	 */
 	private Boolean validateField(String field) {
 		String[] fields = {"id", "ean", "title", "brand", "price", "stock"};
 		
@@ -138,14 +107,25 @@ public class ProductGroupingSvc {
 		
 		return false;
 	}
-	
+
+	/**
+	 * Auxilia na validação do argumento que define a direção da ordenação, quando o @RequestParam
+	 * order_by foi informado.
+	 * @param direction
+	 * @return Boolean
+	 */
 	private Boolean validateDirection(String direction) {
 		if (direction.equals("asc") || direction.equals("desc")) 
 			return true;
 		
 		return false;
 	}
-	
+
+	/**
+	 * Método público para o controller solicitar a validação do @RequestParam utilizado para filtragem.
+	 * @param filter
+	 * @return Boolean
+	 */
 	public Boolean validateFilter(String filter) {
 		String[] sFilter;
 		if (filter.contains(":")) {
@@ -160,7 +140,12 @@ public class ProductGroupingSvc {
 		
 		return false;
 	}
-	
+
+	/**
+	 * Método público para o controller solicitar a validação do @RequestParam utilizado para ordenação.
+	 * @param order
+	 * @return Boolean
+	 */
 	public Boolean validateOrder(String order) {
 		String[] sOrder;
 		if (order.contains(":")) 
@@ -175,10 +160,10 @@ public class ProductGroupingSvc {
 	}
 	
 	/**
-	 * Retorna produtos similares de acordo com EAN.
+	 * Retorna produtos agrupados por EAN.
 	 * 
 	 *  @param products
-	 *  @return Map<String, List<Produto>>
+	 *  @return Result
 	 */
 	public Result groupProductsByEan(List<Product> products) {
 		LOG.info("Agrupando produtos por EAN.");
@@ -199,15 +184,15 @@ public class ProductGroupingSvc {
 		}
 		
 		// Eliminando marcas diferentes para mesmo EAN.
-		groupingByEanMap.clear();
-		groupingByEanMap = groupingByEan.getItems().stream().collect(Collectors.groupingBy(Product::getBrand));
-		groupingByEan.clear();
-		
-		for (String brand: groupingByEanMap.keySet()) {
-			if (groupingByEanMap.get(brand).size() > 1) {
-				groupingByEan.setDescription(groupingByEanMap.get(brand).get(0).getEan());
-			}
-		}
+//		groupingByEanMap.clear();
+//		groupingByEanMap = groupingByEan.getItems().stream().collect(Collectors.groupingBy(Product::getBrand));
+//		groupingByEan.clear();
+//
+//		for (String brand: groupingByEanMap.keySet()) {
+//			if (groupingByEanMap.get(brand).size() > 1) {
+//				groupingByEan.setDescription(groupingByEanMap.get(brand).get(0).getEan());
+//			}
+//		}
 		
 		if (groupingByEan.getItems().size() > 0)
 			result.addGrouping(groupingByEan);
@@ -257,8 +242,9 @@ public class ProductGroupingSvc {
 	}
 	
 	/**
-	 * Encontra a quantidade de palavras em comum entre os dois arrays de string e retorna true se obedecer ao critério de similaridade,
-	 * ou seja, 2 ou mais palavras com mais de 2 letras coincidentes.
+	 * Método auxiliar que verifica a quantidade de palavras em comum entre os dois arrays
+	 * de string e retorna true se obedecer ao critério de similaridade, ou seja, 2 ou mais
+	 * palavras com mais de 2 letras coincidentes.
 	 * 
 	 *  @params p0, p1
 	 *  @return Boolean 
@@ -285,10 +271,10 @@ public class ProductGroupingSvc {
 	}
 	
 	/**
-	 * Retorna produtos similares de acordo com marca.
+	 * Retorna produtos agrupados por marca.
 	 * 
 	 *  @param products
-	 *  @return Map<String, List<Produto>>
+	 *  @return Result
 	 */
 	public Result groupProductsByBrand(List<Product> products) {
 		LOG.info("Agrupando produtos por marca.");
@@ -305,52 +291,52 @@ public class ProductGroupingSvc {
 				result.addGrouping(groupingByBrand);
 			}
 		}
-		
+
 		return result;
 	}
 	
 	/**
-	 * Ordena lista de produtos segundo critério padrão, ou critério definido pelo cliente.
-	 * @param products
+	 * Ordena agrupamento de produtos segundo critério padrão, ou critério definido pelo cliente.
+	 * @param grouping
 	 * @param orderValue
 	 */
-	public void orderProductList(List<Product> products, String[] orderValue) {
-		String field = orderValue[0];
-		String direction = orderValue[1];
-		Comparator<Product> comparator = (p1, p2)->p1.getStock()-p2.getStock();
-		
-		LOG.info("Ordenando por " + field + " em ordem " + direction + ".");
-		
-		switch (field) {
-			case "id":
-				LOG.info("Entrou no switch de ordenação por Id.");
-				comparator = (p1, p2)->p1.getId().compareTo(p2.getId());
-				break;
-			case "ean":
-				comparator = (p1, p2)->p1.getEan().compareTo(p2.getEan());
-				break;
-			case "title":
-				comparator = (p1, p2)->p1.getTitle().compareTo(p2.getTitle());
-				break;
-			case "brand":
-				comparator = (p1, p2)->p1.getBrand().compareTo(p2.getBrand());
-				break;
-			case "price":
-				comparator = (p1, p2)->p1.getPrice().compareTo(p2.getPrice());
-				break;
-			default:
-				break;
-		}
-		
-		if (direction.equals("desc")) {
-			products.sort(comparator.reversed());
-			
-		} else {
-			products.sort(comparator);
-		}
-		
-	}
+    public void orderProductList(Grouping grouping, String[] orderValue) {
+        String field = orderValue[0];
+        String direction = orderValue[1];
+        Comparator<Product> comparator = (p1, p2)->p1.getStock()-p2.getStock();
 
-	
+        LOG.info("Ordenando por " + field + " em ordem " + direction + ".");
+
+        switch (field) {
+            case "id":
+                LOG.info("Entrou no switch de ordenação por Id.");
+                comparator = (p1, p2)->p1.getId().compareTo(p2.getId());
+                break;
+            case "ean":
+                comparator = (p1, p2)->p1.getEan().compareTo(p2.getEan());
+                break;
+            case "title":
+                comparator = (p1, p2)->p1.getTitle().compareTo(p2.getTitle());
+                break;
+            case "brand":
+                comparator = (p1, p2)->p1.getBrand().compareTo(p2.getBrand());
+                break;
+            case "price":
+                comparator = (p1, p2)->p1.getPrice().compareTo(p2.getPrice());
+                break;
+            default:
+                break;
+        }
+
+        if (direction.equals("desc")) {
+            grouping.getItems().sort(comparator.reversed());
+
+        } else {
+            grouping.getItems().sort(comparator);
+        }
+
+        grouping.setDescription(grouping.getItems().get(0).getTitle());
+
+    }
 	
 }
