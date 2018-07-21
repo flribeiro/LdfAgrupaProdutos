@@ -151,20 +151,16 @@ public class ProductGroupingSvcTest {
     }
 
     @Test
-    public void testOrderProductListWithoutParam() {
+    public void testOrderProductList() {
         List<Product> listInput = new ArrayList<>();
         listInput.add(p1);
         listInput.add(p2);
         listInput.add(p3);
         listInput.add(p4);
-        listInput.add(p5);
-        listInput.add(p6);
-        listInput.add(p7);
-        listInput.add(p8);
-        listInput.add(p9);
         Grouping grouping = new Grouping("Teste", listInput);
-        Result output = service.groupProductsByBrand(listInput);
-        assertEquals(2, output.getData().size());
+        String[] orderValue = {"stock", "desc"};
+        service.orderProductList(grouping, orderValue);
+        assertEquals(p2, grouping.getItems().get(0));
     }
 
 }

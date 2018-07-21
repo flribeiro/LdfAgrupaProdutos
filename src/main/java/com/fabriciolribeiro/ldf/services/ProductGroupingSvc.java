@@ -176,7 +176,7 @@ public class ProductGroupingSvc {
 		// Eliminar únicos
 		for (String ean: groupingByEanMap.keySet()) {
 			if (groupingByEanMap.get(ean).size() > 1) {
-				groupingByEan.setDescription(ean);
+				groupingByEan.setDescription(groupingByEanMap.get(ean).get(0).getTitle());
 				groupingByEan.setItems(groupingByEanMap.get(ean));
 				
 			}
