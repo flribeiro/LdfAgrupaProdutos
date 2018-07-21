@@ -1,6 +1,8 @@
 # API para agrupamento de produtos para Marketplace
 Desafio realizado por **Fabrício L. Ribeiro** como teste para seleção de desenvolvedor para o Luizalabs. 
+
 Data de recebimento do desafio: 14/07/2018
+
 Data de conclusão: 21/04/2018
  
 ## Fazendo o setup da aplicação
