@@ -73,10 +73,13 @@ public class LdfController {
         Result result = new Result();
 
         result.join(service.groupProductsByEan(products));
+        LOG.info("Result pós agrupamento por EAN: " + result.getData().size() + " groups.");
 
         result.join(service.groupProductsByTitle(products));
+		LOG.info("Result pós agrupamento por Title: " + result.getData().size() + " groups.");
 
         result.join(service.groupProductsByBrand(products));
+		LOG.info("Result pós agrupamento por Brand: " + result.getData().size() + " groups.");
 
         // ordenação
         String[] orderValue = new String[2];

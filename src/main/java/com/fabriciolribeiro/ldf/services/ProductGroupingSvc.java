@@ -180,24 +180,16 @@ public class ProductGroupingSvc {
 				groupingByEan.setItems(groupingByEanMap.get(ean));
 				
 			}
-			
+
+            if (groupingByEan.getItems().size() > 0)
+                result.addGrouping(new Grouping(groupingByEan.getDescription(), groupingByEan.getItems()));
+
+            groupingByEan.clear();
 		}
+
+
 		
-		// Eliminando marcas diferentes para mesmo EAN.
-//		groupingByEanMap.clear();
-//		groupingByEanMap = groupingByEan.getItems().stream().collect(Collectors.groupingBy(Product::getBrand));
-//		groupingByEan.clear();
-//
-//		for (String brand: groupingByEanMap.keySet()) {
-//			if (groupingByEanMap.get(brand).size() > 1) {
-//				groupingByEan.setDescription(groupingByEanMap.get(brand).get(0).getEan());
-//			}
-//		}
-		
-		if (groupingByEan.getItems().size() > 0)
-			result.addGrouping(groupingByEan);
-		
-		return result;		
+		return result;
 	}
 	
 	
@@ -257,7 +249,7 @@ public class ProductGroupingSvc {
 	    ArrayList<String> list = new ArrayList<String>();
 	    for(int i=0; i<p0.length; i++){
 	        if(i==0 || (i>0 && p0[i]!=p0[i-1])){
-	            if(Arrays.binarySearch(p1, p0[i])>-1){
+	            if(Arrays.binarySearch(p1, p0[i])>-1) {
 	            	if(p0[i].length() > 2)
 	            		list.add(p0[i]);
 	            }

@@ -1,5 +1,6 @@
 package com.fabriciolribeiro.ldf.services;
 
+import com.fabriciolribeiro.ldf.entities.Grouping;
 import com.fabriciolribeiro.ldf.entities.Product;
 import com.fabriciolribeiro.ldf.entities.Result;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +39,8 @@ public class ProductGroupingSvcTest {
     private final Product p7 = new Product("abc123", "7898100848355", "Caneca de louça Branca Trending", "ekul", BigDecimal.valueOf(13.00d), 0);
     private final Product p8 = new Product("987", "7898100848355", "Caneca de louça Branca FlyAway", "ekul", BigDecimal.valueOf(18.00d), 15);
     private final Product p9 = new Product("112233", "7898100848355", "Caneca de louça Branca Tudor", "ekul", BigDecimal.valueOf(25.00d), 2);
+    private final Product p10 = new Product("bb2r3s1", "2059251400402", "Corredor POD 4000hp Nikana", "nikana", BigDecimal.valueOf(18800.99d), 1);
+
 
     @Test
     public void testFilterProductsWithInvalidProducts() {
@@ -109,9 +112,10 @@ public class ProductGroupingSvcTest {
         listInput.add(p7);
         listInput.add(p8);
         listInput.add(p9);
+        listInput.add(p10);
 
         Result output = service.groupProductsByEan(listInput);
-        assertEquals(1, output.getData().size());
+        assertEquals(2, output.getData().size());
     }
 
     @Test
@@ -142,6 +146,23 @@ public class ProductGroupingSvcTest {
         listInput.add(p7);
         listInput.add(p8);
         listInput.add(p9);
+        Result output = service.groupProductsByBrand(listInput);
+        assertEquals(2, output.getData().size());
+    }
+
+    @Test
+    public void testOrderProductListWithoutParam() {
+        List<Product> listInput = new ArrayList<>();
+        listInput.add(p1);
+        listInput.add(p2);
+        listInput.add(p3);
+        listInput.add(p4);
+        listInput.add(p5);
+        listInput.add(p6);
+        listInput.add(p7);
+        listInput.add(p8);
+        listInput.add(p9);
+        Grouping grouping = new Grouping("Teste", listInput);
         Result output = service.groupProductsByBrand(listInput);
         assertEquals(2, output.getData().size());
     }

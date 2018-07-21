@@ -37,5 +37,9 @@ public class Result {
 		}
 		return representation;
 	}
+
+	public void clear() {
+		this.data.clear();
+	}
 	
 }
