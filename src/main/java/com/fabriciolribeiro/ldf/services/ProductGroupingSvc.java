@@ -327,7 +327,7 @@ public class ProductGroupingSvc {
             grouping.getItems().sort(comparator);
         }
 
-        grouping.setDescription(grouping.getItems().get(0).getTitle());
+
 
     }
 	
